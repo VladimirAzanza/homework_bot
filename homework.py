@@ -39,7 +39,11 @@ def send_message(bot, message):
 
 
 def get_api_answer(timestamp):
-    ...
+    return requests.get(
+        ENDPOINT,
+        headers=HEADERS,
+        params={'from_date': timestamp}
+    ).json()
 
 
 def check_response(response):
@@ -59,9 +63,7 @@ def main():
 
     while True:
         try:
-
-            ...
-
+            get_api_answer(timestamp)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             send_message(bot, message)
