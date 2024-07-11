@@ -1,30 +1,41 @@
-...
+import logging
+import os
+import time
+
+import requests
+from telebot import TeleBot, types
+from dotenv import load_dotenv
+
+from constants import (
+    ENDPOINT,
+    ENV_VARIABLES_LIST,
+    HEADERS,
+    HOMEWORK_VERDICTS,
+    PRACTICUM_TOKEN,
+    RETRY_PERIOD,
+    TELEGRAM_CHAT_ID,
+    TELEGRAM_TOKEN,
+)
+from exceptions import (
+    NoneValueException
+)
 
 load_dotenv()
 
 
-PRACTICUM_TOKEN = ...
-TELEGRAM_TOKEN = ...
-TELEGRAM_CHAT_ID = ...
-
-RETRY_PERIOD = 600
-ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
-HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
-
-
-HOMEWORK_VERDICTS = {
-    'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
-    'reviewing': 'Работа взята на проверку ревьюером.',
-    'rejected': 'Работа проверена: у ревьюера есть замечания.'
-}
-
-
 def check_tokens():
-    ...
+    if not all(ENV_VARIABLES_LIST):
+        raise NoneValueException(
+            'Required environment variables are missing.'
+            'Check for the availability of tokens'
+        )
 
 
 def send_message(bot, message):
-    ...
+    bot.send_message(
+        chat_id=TELEGRAM_CHAT_ID,
+        text=message
+    )
 
 
 def get_api_answer(timestamp):
@@ -43,14 +54,8 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
-
-    ...
-
-    # Создаем объект класса бота
-    bot = ...
+    bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
-
-    ...
 
     while True:
         try:
@@ -59,7 +64,7 @@ def main():
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            ...
+            send_message(bot, message)
         ...
 
 
