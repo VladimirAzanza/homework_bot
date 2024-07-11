@@ -75,6 +75,8 @@ def main():
                 params={'from_date': timestamp}
             ).json()
         )
+        bot.polling()
+        time.sleep(RETRY_PERIOD)
 
 
 if __name__ == '__main__':
