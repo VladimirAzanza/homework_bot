@@ -47,7 +47,8 @@ def get_api_answer(timestamp):
 
 
 def check_response(response):
-    ...
+    homework = response.get('homeworks')
+    return parse_status(homework)
 
 
 def parse_status(homework):
@@ -67,7 +68,13 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             send_message(bot, message)
-        ...
+        check_response(
+            requests.get(
+                ENDPOINT,
+                headers=HEADERS,
+                params={'from_date': timestamp}
+            ).json()
+        )
 
 
 if __name__ == '__main__':
