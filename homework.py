@@ -11,7 +11,6 @@ from constants import (
     ENV_VARIABLES_LIST,
     HEADERS,
     HOMEWORK_VERDICTS,
-    PRACTICUM_TOKEN,
     RETRY_PERIOD,
     TELEGRAM_CHAT_ID,
     TELEGRAM_TOKEN,
@@ -52,8 +51,8 @@ def check_response(response):
 
 
 def parse_status(homework):
-    ...
-
+    homework_name = homework['homework_name']
+    verdict = homework['status']
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
