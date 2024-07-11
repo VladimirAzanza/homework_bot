@@ -17,7 +17,8 @@ from constants import (
     TELEGRAM_TOKEN,
 )
 from exceptions import (
-    NoneValueException
+    NoneValueException,
+    UndefinedStatusException
 )
 
 load_dotenv()
@@ -63,8 +64,16 @@ def check_response(response):
 
 
 def parse_status(homework):
+    if 'homework_name' not in homework:
+        raise KeyError('У словарья нет клоча "homework_name"')
     homework_name = homework['homework_name']
-    verdict = homework['status']
+    homework_status = homework['status']
+    if homework_status in HOMEWORK_VERDICTS:
+        verdict = HOMEWORK_VERDICTS[homework_status]
+    else:
+        raise UndefinedStatusException(
+            f'Статус не известный: {homework_status}'
+        )
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
