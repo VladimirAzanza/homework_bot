@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 from constants import (
     ENDPOINT,
-    ENV_VARIABLES_LIST,
     HEADERS,
     HOMEWORK_VERDICTS,
     PRACTICUM_TOKEN,
@@ -24,19 +23,20 @@ from exceptions import (
 load_dotenv()
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     filename='program.log',
     format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
-    filemode='w'
 )
+logger = logging.getLogger(__name__)
 
 
 def check_tokens():
-    if not all(ENV_VARIABLES_LIST):
-        raise NoneValueException(
-            'Required environment variables are missing.'
-            'Check for the availability of tokens'
-        )
+    for token in [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]:
+        if token is None:
+            logger.critical(
+                'Required environment variable {token} is missing.'
+            )
+            raise NoneValueException('hjsda')
 
 
 def send_message(bot, message):
@@ -81,6 +81,7 @@ def main():
     """Основная логика работы бота."""
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
+    check_tokens()
     get_api_answer(timestamp)
 
     while True:
