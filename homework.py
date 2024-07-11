@@ -11,6 +11,7 @@ from constants import (
     ENV_VARIABLES_LIST,
     HEADERS,
     HOMEWORK_VERDICTS,
+    PRACTICUM_TOKEN,
     RETRY_PERIOD,
     TELEGRAM_CHAT_ID,
     TELEGRAM_TOKEN,
@@ -20,6 +21,13 @@ from exceptions import (
 )
 
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename='program.log',
+    format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
+    filemode='w'
+)
 
 
 def check_tokens():
@@ -42,7 +50,7 @@ def get_api_answer(timestamp):
         ENDPOINT,
         headers=HEADERS,
         params={'from_date': timestamp}
-    ).json()
+    ).json().get('homeworks')[0]
 
 
 def check_response(response):
