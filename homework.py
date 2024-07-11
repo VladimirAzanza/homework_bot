@@ -46,11 +46,15 @@ def send_message(bot, message):
 
 
 def get_api_answer(timestamp):
-    return requests.get(
-        ENDPOINT,
-        headers=HEADERS,
-        params={'from_date': timestamp}
-    ).json().get('homeworks')[0]
+    try:
+        response = requests.get(
+            ENDPOINT,
+            headers=HEADERS,
+            params={'from_date': timestamp}
+        )
+        return dict(response.json().get('homeworks'))
+    except requests.RequestException as error:
+        print(f'Сбой в работе программы: {error}')
 
 
 def check_response(response):
@@ -68,20 +72,20 @@ def main():
     """Основная логика работы бота."""
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
+    get_api_answer(timestamp)
 
     while True:
         try:
-            get_api_answer(timestamp)
+            check_response(
+                requests.get(
+                    ENDPOINT,
+                    headers=HEADERS,
+                    params={'from_date': timestamp}
+                ).json()
+            )
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             send_message(bot, message)
-        check_response(
-            requests.get(
-                ENDPOINT,
-                headers=HEADERS,
-                params={'from_date': timestamp}
-            ).json()
-        )
         bot.polling()
         time.sleep(RETRY_PERIOD)
 
