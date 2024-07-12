@@ -72,14 +72,15 @@ def check_response(response):
     homeworks = response.get('homeworks')
     if not homeworks:
         logging.debug('No new homework status')
+    elif not isinstance(homeworks, list):
+        raise TypeError('Homeworks must be a list')
     else:
-        for homework in homeworks:
-            if not isinstance(homework, dict):
-                raise TypeError('Homework must be a dictionary type')
-            return parse_status(homework)
+        return homeworks
 
 
 def parse_status(homework):
+    if not isinstance(homework, dict):
+        raise TypeError('Homework must be a dictionary type')
     if 'homework_name' not in homework:
         raise KeyError('У словарья нет ключа "homework_name"')
     homework_name = homework['homework_name']
@@ -106,16 +107,21 @@ def main():
     check_tokens()
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time())
-    message = ''
+    timestamp = 0
+    last_message = ''
 
     while True:
         try:
             response = get_api_answer(timestamp)
-            new_message = check_response(response)
-            if new_message != message and message:
-                message = new_message
-                send_message(bot, message)
+            homeworks = check_response(response)
+            if homeworks:
+                new_messages = []
+                for homework in homeworks:
+                    new_message = parse_status(homework)
+                    new_messages.append(new_message)
+                if new_messages != last_message and new_messages:
+                    last_message = new_messages
+                    send_message(bot, last_message)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logging.warning(message)
