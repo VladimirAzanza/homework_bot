@@ -47,7 +47,7 @@ def get_api_answer(timestamp):
         )
         return dict(response.json().get('homeworks'))
     except requests.RequestException as error:
-        print(f'Сбой: {error}')
+        logging.error(f'Program crash: {error}')
 
 
 def check_response(response):
@@ -84,10 +84,9 @@ def main():
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
 
-    get_api_answer(timestamp)
-
     while True:
         try:
+            get_api_answer(timestamp)
             check_response(
                 requests.get(
                     ENDPOINT,
