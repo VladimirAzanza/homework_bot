@@ -49,21 +49,27 @@ def send_message(bot, message):
 
 def get_api_answer(timestamp):
     try:
-        response = requests.get(
+        homeworks = requests.get(
             ENDPOINT,
             headers=HEADERS,
             params={'from_date': timestamp}
-        )
-        return dict(response.json().get('homeworks'))
+        ).json().get('homeworks')
+        if homeworks == []:
+            return {}
+        else:
+            return homeworks[0]
     except requests.RequestException as error:
         logging.error(f'Program crash: {error}')
 
 
 def check_response(response):
-    homework = response.get('homeworks')
-    if not homework:
+    homeworks = response.get('homeworks')
+    if not homeworks:
         logging.debug('No new homework status')
-    return parse_status(homework)
+    for homework in homeworks:
+        if not isinstance(homework, dict):
+            raise TypeError('Homework must be a dictionary type')
+        return parse_status(homework)
 
 
 def parse_status(homework):
