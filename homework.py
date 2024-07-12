@@ -14,7 +14,7 @@ from constants import (
     RETRY_PERIOD,
     ENDPOINT,
     HEADERS,
-    HOMEWORK_VERDICTS
+    HOMEWORK_VERDICTS,
 )
 from exceptions import (
     NoneValueException,
@@ -48,7 +48,8 @@ def send_message(bot, message):
     try:
         bot.send_message(
             chat_id=TELEGRAM_CHAT_ID,
-            text=message
+            text=message,
+            reply_markup=types.ReplyKeyboardRemove()
         )
         logging.debug(
             f'Message succesfully sent to {TELEGRAM_CHAT_ID}: {message}'
@@ -162,11 +163,9 @@ def main():
             response = get_api_answer(timestamp)
             homeworks = check_response(response)
             if homeworks:
-                new_messages = []
                 new_message = parse_status(homeworks[0])
-                new_messages.append(new_message)
-                if new_messages != last_message and new_messages:
-                    last_message = new_messages
+                if new_message != last_message and new_message:
+                    last_message = new_message
                     send_message(bot, last_message)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
