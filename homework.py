@@ -65,9 +65,11 @@ def get_api_answer(timestamp):
 
 
 def check_response(response):
+    if not isinstance(response, dict):
+        raise TypeError('Response must be a dictionary type')
+    if 'homeworks' not in response:
+        raise KeyError('Not homeworks key at response')
     homeworks = response.get('homeworks')
-    if not isinstance(homeworks, list):
-        raise TypeError('Homeworks must be a list type')
     if not homeworks:
         logging.debug('No new homework status')
     else:
