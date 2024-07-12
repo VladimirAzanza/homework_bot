@@ -20,23 +20,15 @@ from exceptions import (
     UndefinedStatusException
 )
 
-load_dotenv()
-
-logging.basicConfig(
-    level=logging.INFO,
-    filename='program.log',
-    format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
-)
-logger = logging.getLogger(__name__)
-
 
 def check_tokens():
-    for token in [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]:
-        if token is None:
-            logger.critical(
-                'Required environment variable {token} is missing.'
-            )
-            raise NoneValueException('hjsda')
+    if not all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
+        logging.critical(
+            'Check that the environment varibles/tokens are not missing'
+        )
+        raise NoneValueException(
+            'Check that the environment varibles/tokens are not missing'
+        )
 
 
 def send_message(bot, message):
@@ -55,7 +47,7 @@ def get_api_answer(timestamp):
         )
         return dict(response.json().get('homeworks'))
     except requests.RequestException as error:
-        print(f'Сбой в работе программы: {error}')
+        print(f'Сбой: {error}')
 
 
 def check_response(response):
@@ -79,9 +71,19 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
+    load_dotenv()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        filename='program.log',
+        format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
+    )
+
+    check_tokens()
+
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
-    check_tokens()
+
     get_api_answer(timestamp)
 
     while True:
