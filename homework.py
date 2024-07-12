@@ -17,6 +17,7 @@ from constants import (
 )
 from exceptions import (
     NoneValueException,
+    SendMessageFailedException,
     UndefinedStatusException
 )
 
@@ -32,10 +33,18 @@ def check_tokens():
 
 
 def send_message(bot, message):
-    bot.send_message(
-        chat_id=TELEGRAM_CHAT_ID,
-        text=message
-    )
+    try:
+        bot.send_message(
+            chat_id=TELEGRAM_CHAT_ID,
+            text=message
+        )
+        logging.debug(
+            f'Message succesfully sent to {TELEGRAM_CHAT_ID}:{message}'
+        )
+    except SendMessageFailedException:
+        logging.error(
+            f'Failed to send message to {TELEGRAM_CHAT_ID}:{message}'
+        )
 
 
 def get_api_answer(timestamp):
@@ -52,12 +61,14 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     homework = response.get('homeworks')
+    if not homework:
+        logging.debug('No new homework status')
     return parse_status(homework)
 
 
 def parse_status(homework):
     if 'homework_name' not in homework:
-        raise KeyError('У словарья нет клоча "homework_name"')
+        raise KeyError('У словарья нет ключа "homework_name"')
     homework_name = homework['homework_name']
     homework_status = homework['status']
     if homework_status in HOMEWORK_VERDICTS:
@@ -74,7 +85,7 @@ def main():
     load_dotenv()
 
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         filename='program.log',
         format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
     )
@@ -97,7 +108,6 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             send_message(bot, message)
-        bot.polling()
         time.sleep(RETRY_PERIOD)
 
 
