@@ -23,10 +23,13 @@ from exceptions import (
 
 
 def check_tokens():
-    """_summary_
+    """
+    Function that checks for the avalability of environment variables
+    and tokens.
 
     Raises:
-        NoneValueException: _description_
+        NoneValueException: Exception if any of the environment variables
+        or tokens are missing.
     """
     if not all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
         logging.critical(
@@ -38,11 +41,12 @@ def check_tokens():
 
 
 def send_message(bot, message):
-    """_summary_
+    """
+    Function that sends a message to the user through a bot.
 
     Arguments:
-        bot -- _description_
-        message -- _description_
+        bot (telebot.Telebot): Telegram bot instance.
+        message (str):  Message to be sent to the user.
     """
     try:
         bot.send_message(
@@ -60,16 +64,17 @@ def send_message(bot, message):
 
 
 def get_api_answer(timestamp):
-    """_summary_
+    """
+    Function that gets a request to the Yandex Practicum API.
 
     Arguments:
-        timestamp -- _description_
+        timestamp (int): A timestamp representing the actual time.
 
     Raises:
-        StatusCodeException: _description_
+        StatusCodeException: Exception if request code status is not 200.
 
     Returns:
-        _description_
+        dict: API response converted to Python data type.
     """
     try:
         response = requests.get(
@@ -86,18 +91,18 @@ def get_api_answer(timestamp):
 
 
 def check_response(response):
-    """_summary_
+    """
+    Function that checks for the API response.
 
     Arguments:
-        response -- _description_
+        response (dict): API response converted to Python data type.
 
     Raises:
-        TypeError: _description_
-        KeyError: _description_
-        TypeError: _description_
+        TypeError: Exception for non correct type.
+        KeyError: Exception for no key.
 
     Returns:
-        _description_
+        list: The list of homeworks from the response.
     """
     if not isinstance(response, dict):
         raise TypeError('Response must be a dictionary type')
@@ -113,30 +118,31 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """_summary_
+    """
+    Parse the status of a homework and return the message with the status.
 
     Arguments:
-        homework -- _description_
+        homework (dict): Dictionary with the information of the homework.
 
     Raises:
-        TypeError: _description_
-        KeyError: _description_
-        UndefinedStatusException: _description_
+        TypeError: Exception for non correct type.
+        KeyError: Exception for no key.
+        UndefinedStatusException: Exception for no expected status.
 
     Returns:
-        _description_
+        str: Message with the status of the homework.
     """
     if not isinstance(homework, dict):
         raise TypeError('Homework must be a dictionary type')
     if 'homework_name' not in homework:
-        raise KeyError('У словарья нет ключа "homework_name"')
+        raise KeyError('No "homework_name" at homework keys')
     homework_name = homework['homework_name']
     homework_status = homework['status']
     if homework_status in HOMEWORK_VERDICTS:
         verdict = HOMEWORK_VERDICTS[homework_status]
     else:
         raise UndefinedStatusException(
-            f'Статус не известный: {homework_status}'
+            f'Unkown status: {homework_status}'
         )
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
@@ -167,7 +173,7 @@ def main():
                     last_message = new_message
                     send_message(bot, last_message)
         except Exception as error:
-            message = f'Сбой в работе программы: {error}'
+            message = f'Program crash: {error}'
             logging.warning(message)
         time.sleep(RETRY_PERIOD)
 
