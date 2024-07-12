@@ -8,3 +8,7 @@ class UndefinedStatusException(Exception):
 
 class SendMessageFailedException(Exception):
     pass
+
+
+class StatusCodeException(Exception):
+    pass

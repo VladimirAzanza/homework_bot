@@ -2,9 +2,10 @@ import logging
 import os
 import time
 
+from dotenv import load_dotenv
 import requests
 from telebot import TeleBot, types
-from dotenv import load_dotenv
+from http import HTTPStatus
 
 from constants import (
     ENDPOINT,
@@ -18,6 +19,7 @@ from constants import (
 from exceptions import (
     NoneValueException,
     SendMessageFailedException,
+    StatusCodeException,
     UndefinedStatusException
 )
 
@@ -39,37 +41,40 @@ def send_message(bot, message):
             text=message
         )
         logging.debug(
-            f'Message succesfully sent to {TELEGRAM_CHAT_ID}:{message}'
+            f'Message succesfully sent to {TELEGRAM_CHAT_ID}: {message}'
         )
-    except SendMessageFailedException:
+    except SendMessageFailedException as e:
         logging.error(
-            f'Failed to send message to {TELEGRAM_CHAT_ID}:{message}'
+            f'Failed to send message: {e}'
         )
 
 
 def get_api_answer(timestamp):
     try:
-        homeworks = requests.get(
+        response = requests.get(
             ENDPOINT,
             headers=HEADERS,
             params={'from_date': timestamp}
-        ).json().get('homeworks')
-        if homeworks == []:
-            return {}
-        else:
-            return homeworks[0]
+        )
+        if response.status_code != HTTPStatus.OK:
+            logging.error('Program crash')
+            raise StatusCodeException('Not 200 Http status code.')
+        return response.json()
     except requests.RequestException as error:
         logging.error(f'Program crash: {error}')
 
 
 def check_response(response):
     homeworks = response.get('homeworks')
+    if not isinstance(homeworks, list):
+        raise TypeError('Homeworks must be a list type')
     if not homeworks:
         logging.debug('No new homework status')
-    for homework in homeworks:
-        if not isinstance(homework, dict):
-            raise TypeError('Homework must be a dictionary type')
-        return parse_status(homework)
+    else:
+        for homework in homeworks:
+            if not isinstance(homework, dict):
+                raise TypeError('Homework must be a dictionary type')
+            return parse_status(homework)
 
 
 def parse_status(homework):
@@ -100,20 +105,18 @@ def main():
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
+    message = ''
 
     while True:
         try:
-            get_api_answer(timestamp)
-            check_response(
-                requests.get(
-                    ENDPOINT,
-                    headers=HEADERS,
-                    params={'from_date': timestamp}
-                ).json()
-            )
+            response = get_api_answer(timestamp)
+            new_message = check_response(response)
+            if new_message != message and message:
+                message = new_message
+                send_message(bot, message)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            send_message(bot, message)
+            logging.warning(message)
         time.sleep(RETRY_PERIOD)
 
 
