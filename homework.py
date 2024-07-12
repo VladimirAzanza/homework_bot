@@ -7,24 +7,32 @@ import requests
 from telebot import TeleBot, types
 from http import HTTPStatus
 
-from constants import (
-    ENDPOINT,
-    HEADERS,
-    HOMEWORK_VERDICTS,
-    PRACTICUM_TOKEN,
-    RETRY_PERIOD,
-    TELEGRAM_CHAT_ID,
-    TELEGRAM_TOKEN,
-)
 from exceptions import (
     NoneValueException,
-    SendMessageFailedException,
     StatusCodeException,
     UndefinedStatusException
 )
 
 
+PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
+TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+RETRY_PERIOD = 600
+ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
+HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
+HOMEWORK_VERDICTS = {
+    'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
+    'reviewing': 'Работа взята на проверку ревьюером.',
+    'rejected': 'Работа проверена: у ревьюера есть замечания.'
+}
+
+
 def check_tokens():
+    """_summary_
+
+    Raises:
+        NoneValueException: _description_
+    """
     if not all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
         logging.critical(
             'Check that the environment varibles/tokens are not missing'
@@ -35,6 +43,12 @@ def check_tokens():
 
 
 def send_message(bot, message):
+    """_summary_
+
+    Arguments:
+        bot -- _description_
+        message -- _description_
+    """
     try:
         bot.send_message(
             chat_id=TELEGRAM_CHAT_ID,
@@ -43,13 +57,24 @@ def send_message(bot, message):
         logging.debug(
             f'Message succesfully sent to {TELEGRAM_CHAT_ID}: {message}'
         )
-    except SendMessageFailedException as e:
+    except Exception as error:
         logging.error(
-            f'Failed to send message: {e}'
+            f'Failed to send message: {error}'
         )
 
 
 def get_api_answer(timestamp):
+    """_summary_
+
+    Arguments:
+        timestamp -- _description_
+
+    Raises:
+        StatusCodeException: _description_
+
+    Returns:
+        _description_
+    """
     try:
         response = requests.get(
             ENDPOINT,
@@ -65,6 +90,19 @@ def get_api_answer(timestamp):
 
 
 def check_response(response):
+    """_summary_
+
+    Arguments:
+        response -- _description_
+
+    Raises:
+        TypeError: _description_
+        KeyError: _description_
+        TypeError: _description_
+
+    Returns:
+        _description_
+    """
     if not isinstance(response, dict):
         raise TypeError('Response must be a dictionary type')
     if 'homeworks' not in response:
@@ -79,6 +117,19 @@ def check_response(response):
 
 
 def parse_status(homework):
+    """_summary_
+
+    Arguments:
+        homework -- _description_
+
+    Raises:
+        TypeError: _description_
+        KeyError: _description_
+        UndefinedStatusException: _description_
+
+    Returns:
+        _description_
+    """
     if not isinstance(homework, dict):
         raise TypeError('Homework must be a dictionary type')
     if 'homework_name' not in homework:
@@ -107,7 +158,7 @@ def main():
     check_tokens()
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
-    timestamp = 0
+    timestamp = int(time.time())
     last_message = ''
 
     while True:
@@ -116,9 +167,8 @@ def main():
             homeworks = check_response(response)
             if homeworks:
                 new_messages = []
-                for homework in homeworks:
-                    new_message = parse_status(homework)
-                    new_messages.append(new_message)
+                new_message = parse_status(homeworks[0])
+                new_messages.append(new_message)
                 if new_messages != last_message and new_messages:
                     last_message = new_messages
                     send_message(bot, last_message)
