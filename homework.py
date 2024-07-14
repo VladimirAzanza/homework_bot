@@ -22,17 +22,26 @@ from exceptions import (
 )
 
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename='program.log',
+    format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
+)
+
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler()
+logger.addHandler(handler)
+
+
 def check_tokens():
-    """
-    Function that checks for the avalability of environment variables
-    and tokens.
+    """Checks for the avalability of environment variables and tokens.
 
     Raises:
         NoneValueException: Exception if any of the environment variables
         or tokens are missing.
     """
     if not all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
-        logging.critical(
+        logger.critical(
             'Check that the environment varibles/tokens are not missing'
         )
         raise NoneValueException(
@@ -41,8 +50,7 @@ def check_tokens():
 
 
 def send_message(bot, message):
-    """
-    Function that sends a message to the user through a bot.
+    """Function that sends a message to the user through a bot.
 
     Arguments:
         bot (telebot.Telebot): Telegram bot instance.
@@ -54,18 +62,17 @@ def send_message(bot, message):
             text=message,
             reply_markup=types.ReplyKeyboardRemove()
         )
-        logging.debug(
+        logger.debug(
             f'Message succesfully sent to {TELEGRAM_CHAT_ID}: {message}'
         )
     except Exception as error:
-        logging.error(
+        logger.error(
             f'Failed to send message: {error}'
         )
 
 
 def get_api_answer(timestamp):
-    """
-    Function that gets a request to the Yandex Practicum API.
+    """Function that gets a request to the Yandex Practicum API.
 
     Arguments:
         timestamp (int): A timestamp representing the actual time.
@@ -83,16 +90,15 @@ def get_api_answer(timestamp):
             params={'from_date': timestamp}
         )
         if response.status_code != HTTPStatus.OK:
-            logging.error('Program crash')
+            logger.error('Program crash')
             raise StatusCodeException('Not 200 Http status code.')
         return response.json()
     except requests.RequestException as error:
-        logging.error(f'Program crash: {error}')
+        logger.error(f'Program crash: {error}')
 
 
 def check_response(response):
-    """
-    Function that checks for the API response.
+    """Function that checks for the API response.
 
     Arguments:
         response (dict): API response converted to Python data type.
@@ -110,7 +116,7 @@ def check_response(response):
         raise KeyError('Not homeworks key at response')
     homeworks = response.get('homeworks')
     if not homeworks:
-        logging.debug('No new homework status')
+        logger.debug('No new homework status')
     elif not isinstance(homeworks, list):
         raise TypeError('Homeworks must be a list')
     else:
@@ -118,8 +124,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """
-    Parse the status of a homework and return the message with the status.
+    """Parse the status of a homework and returns a message with the status.
 
     Arguments:
         homework (dict): Dictionary with the information of the homework.
@@ -150,12 +155,6 @@ def parse_status(homework):
 def main():
     """Основная логика работы бота."""
     load_dotenv()
-
-    logging.basicConfig(
-        level=logging.DEBUG,
-        filename='program.log',
-        format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
-    )
 
     check_tokens()
 
