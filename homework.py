@@ -21,16 +21,7 @@ from exceptions import (
     UndefinedStatusException
 )
 
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    filename='program.log',
-    format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
-)
-
 logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-logger.addHandler(handler)
 
 
 def check_tokens():
@@ -156,10 +147,18 @@ def main():
     """Основная логика работы бота."""
     load_dotenv()
 
+    logging.basicConfig(
+        level=logging.DEBUG,
+        filename='program.log',
+        format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
+    )
+    handler = logging.StreamHandler()
+    logger.addHandler(handler)
+
     check_tokens()
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time())
+    timestamp = int(time.time()) - (8640 * 2)
     last_message = ''
 
     while True:
