@@ -8,7 +8,6 @@ from telebot import TeleBot, types
 
 from constants import (
     ENDPOINT,
-    ENV_TOKENS_LIST,
     HEADERS,
     HOMEWORK_VERDICTS,
     PRACTICUM_TOKEN,
@@ -33,7 +32,11 @@ def check_tokens():
         missing_tokens (list): A list with the missing variables or tokens.
     """
     missing_tokens = [
-        token_name for token, token_name in ENV_TOKENS_LIST if not token
+        token_name for token, token_name in [
+            (PRACTICUM_TOKEN, 'Practicum token'),
+            (TELEGRAM_CHAT_ID, 'Telegram chat ID'),
+            (TELEGRAM_TOKEN, 'Telegram token'),
+        ] if not token
     ]
     return missing_tokens
 
@@ -154,14 +157,12 @@ def main():
     logger.addHandler(handler)
 
     if check_tokens():
-        logger.critical(
+        message = (
             f'Check for existence of environment varibles/tokens:'
             f'{", ".join(check_tokens())}'
         )
-        raise NoneValueException(
-            f'Check for existence of environment varibles/tokens:'
-            f'{", ".join(check_tokens())}'
-        )
+        logger.critical(message)
+        raise NoneValueException(message)
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time()) - (8640 * 2)

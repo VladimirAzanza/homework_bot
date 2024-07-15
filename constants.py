@@ -3,11 +3,6 @@ import os
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-ENV_TOKENS_LIST = [
-    (PRACTICUM_TOKEN, 'Practicum token'),
-    (TELEGRAM_CHAT_ID, 'Telegram chat ID'),
-    (TELEGRAM_TOKEN, 'Telegram token'),
-]
 RETRY_PERIOD = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
