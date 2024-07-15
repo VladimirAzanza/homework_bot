@@ -8,6 +8,7 @@ from telebot import TeleBot, types
 
 from constants import (
     ENDPOINT,
+    ENV_TOKENS_LIST,
     HEADERS,
     HOMEWORK_VERDICTS,
     PRACTICUM_TOKEN,
@@ -21,23 +22,20 @@ from exceptions import (
     UndefinedStatusException
 )
 
+
 logger = logging.getLogger(__name__)
 
 
 def check_tokens():
     """Checks for the avalability of environment variables and tokens.
 
-    Raises:
-        NoneValueException: Exception if any of the environment variables
-        or tokens are missing.
+    Returns:
+        missing_tokens (list): A list with the missing variables or tokens.
     """
-    if not all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
-        logger.critical(
-            'Check that the environment varibles/tokens are not missing'
-        )
-        raise NoneValueException(
-            'Check that the environment varibles/tokens are not missing'
-        )
+    missing_tokens = [
+        token_name for token, token_name in ENV_TOKENS_LIST if not token
+    ]
+    return missing_tokens
 
 
 def send_message(bot, message):
@@ -155,7 +153,15 @@ def main():
     handler = logging.StreamHandler()
     logger.addHandler(handler)
 
-    check_tokens()
+    if check_tokens():
+        logger.critical(
+            f'Check for existence of environment varibles/tokens:'
+            f'{", ".join(check_tokens())}'
+        )
+        raise NoneValueException(
+            f'Check for existence of environment varibles/tokens:'
+            f'{", ".join(check_tokens())}'
+        )
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time()) - (8640 * 2)
