@@ -4,7 +4,7 @@ import time
 from dotenv import load_dotenv
 from http import HTTPStatus
 import requests
-from telebot import TeleBot, types
+from telebot import apihelper, TeleBot, types
 
 from constants import (
     ENDPOINT,
@@ -48,6 +48,7 @@ def send_message(bot, message):
         bot (telebot.Telebot): Telegram bot instance.
         message (str):  Message to be sent to the user.
     """
+    logger.info('Loading the message to send it to telegram user.')
     try:
         bot.send_message(
             chat_id=TELEGRAM_CHAT_ID,
@@ -57,7 +58,7 @@ def send_message(bot, message):
         logger.debug(
             f'Message succesfully sent to {TELEGRAM_CHAT_ID}: {message}'
         )
-    except Exception as error:
+    except (requests.RequestException, apihelper.ApiException) as error:
         logger.error(
             f'Failed to send message: {error}'
         )
@@ -75,6 +76,7 @@ def get_api_answer(timestamp):
     Returns:
         dict: API response converted to Python data type.
     """
+    logger.info('Making the request to the Yandex Practicum API.')
     try:
         response = requests.get(
             ENDPOINT,
@@ -102,6 +104,7 @@ def check_response(response):
     Returns:
         list: The list of homeworks from the response.
     """
+    logger.info('Ckecking for a correct response to the request.')
     if not isinstance(response, dict):
         raise TypeError('Response must be a dictionary type')
     if 'homeworks' not in response:
@@ -165,7 +168,7 @@ def main():
         raise NoneValueException(message)
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time()) - (8640 * 2)
+    timestamp = int(time.time()) - (8640 * 4)
     last_message = ''
 
     while True:
