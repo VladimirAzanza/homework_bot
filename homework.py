@@ -183,7 +183,8 @@ def main():
         except Exception as error:
             message = f'Program crash: {error}'
             logging.warning(message)
-        time.sleep(RETRY_PERIOD)
+        finally:
+            time.sleep(RETRY_PERIOD)
 
 
 if __name__ == '__main__':
