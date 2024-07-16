@@ -1,2 +1,2 @@
 # homework_bot
-Python telegram bot configured to send requests to the Yandex Practicum API and generate status update messages to the homework's user.
+Python telegram bot configured to constantly send requests to Yandex Practicum API in search of the status update of the last homework sent. 
