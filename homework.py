@@ -186,8 +186,8 @@ def main():
             if homeworks:
                 new_message = parse_status(homeworks[0])
                 if new_message != last_message:
+                    send_message(bot, new_message)
                     last_message = new_message
-                    send_message(bot, last_message)
         except (requests.RequestException, apihelper.ApiException) as error:
             message = f'Failed to send message: {error}'
             logger.error(message)
