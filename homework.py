@@ -68,7 +68,7 @@ def get_api_answer(timestamp):
         timestamp (int): A timestamp representing the actual time.
 
     Raises:
-        StatusCodeException: Exception if request code status is not 200.
+        StatusCodeException: Exception if HTTP request code status is not 200.
 
     Returns:
         dict: API response converted to Python data type.
@@ -133,7 +133,7 @@ def parse_status(homework):
     Raises:
         TypeError: Exception for non correct type.
         KeyError: Exception for no key.
-        UndefinedStatusException: Exception for no expected status.
+        UndefinedStatusException: Exception raised for no expected status.
 
     Returns:
         str: Message with the status of the homework.
