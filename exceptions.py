@@ -8,3 +8,11 @@ class UndefinedStatusException(Exception):
 
 class StatusCodeException(Exception):
     pass
+
+
+class SendTelegramException(Exception):
+    """_summary_
+
+    Arguments:
+        Exception -- _description_
+    """

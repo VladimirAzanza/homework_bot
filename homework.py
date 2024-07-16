@@ -17,6 +17,7 @@ from constants import (
 )
 from exceptions import (
     NoneValueException,
+    SendTelegramException,
     StatusCodeException,
     UndefinedStatusException
 )
@@ -49,19 +50,14 @@ def send_message(bot, message):
         message (str):  Message to be sent to the user.
     """
     logger.info('Loading the message to send it to telegram user.')
-    try:
-        bot.send_message(
-            chat_id=TELEGRAM_CHAT_ID,
-            text=message,
-            reply_markup=types.ReplyKeyboardRemove()
-        )
-        logger.debug(
-            f'Message succesfully sent to {TELEGRAM_CHAT_ID}: {message}'
-        )
-    except (requests.RequestException, apihelper.ApiException) as error:
-        logger.error(
-            f'Failed to send message: {error}'
-        )
+    bot.send_message(
+        chat_id=TELEGRAM_CHAT_ID,
+        text=message,
+        reply_markup=types.ReplyKeyboardRemove()
+    )
+    logger.debug(
+        f'Message succesfully sent to {TELEGRAM_CHAT_ID}: {message}'
+    )
 
 
 def get_api_answer(timestamp):
@@ -168,7 +164,7 @@ def main():
         raise NoneValueException(message)
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time()) - (8640 * 4)
+    timestamp = int(time.time()) - (8640 * 3)
     last_message = ''
 
     while True:
@@ -180,6 +176,10 @@ def main():
                 if new_message != last_message and new_message:
                     last_message = new_message
                     send_message(bot, last_message)
+        except (requests.RequestException, apihelper.ApiException) as error:
+            message = f'Failed to send message: {error}'
+            logger.error(message)
+            raise SendTelegramException(message)
         except Exception as error:
             message = f'Program crash: {error}'
             logging.warning(message)
