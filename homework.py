@@ -175,16 +175,17 @@ def main():
         raise NoneValueException(message)
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time()) - (8640 * 3)
+    timestamp = int(time.time())
     last_message = ''
 
     while True:
         try:
             response = get_api_answer(timestamp)
+            timestamp = response.get('current_date')
             homeworks = check_response(response)
             if homeworks:
                 new_message = parse_status(homeworks[0])
-                if new_message != last_message and new_message:
+                if new_message != last_message:
                     last_message = new_message
                     send_message(bot, last_message)
         except (requests.RequestException, apihelper.ApiException) as error:
