@@ -73,18 +73,28 @@ def get_api_answer(timestamp):
         dict: API response converted to Python data type.
     """
     logger.info('Making the request to the Yandex Practicum API.')
+    request_kwargs = {
+        'url': ENDPOINT,
+        'headers': HEADERS,
+        'params': {'from_date': timestamp}
+    }
     try:
-        response = requests.get(
-            ENDPOINT,
-            headers=HEADERS,
-            params={'from_date': timestamp}
-        )
-        if response.status_code != HTTPStatus.OK:
-            logger.error('Program crash')
-            raise StatusCodeException('Not 200 Http status code.')
-        return response.json()
+        response = requests.get(**request_kwargs)
     except requests.RequestException as error:
-        logger.error(f'Program crash: {error}')
+        message = (
+            f'API failed to make a request: {error}.\n'
+            f'Request parameters: {request_kwargs}'
+        )
+        logger.error(message)
+        raise StatusCodeException(message)
+    if response.status_code != HTTPStatus.OK:
+        message = (
+            'Not 200 Http status code.\n'
+            f'Request parameters: {request_kwargs}'
+        )
+        logger.error(message)
+        raise StatusCodeException(message)
+    return response.json()
 
 
 def check_response(response):
