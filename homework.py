@@ -23,6 +23,7 @@ from exceptions import (
 )
 
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 
@@ -120,8 +121,7 @@ def check_response(response):
         logger.debug('No new homework status')
     elif not isinstance(homeworks, list):
         raise TypeError('Homeworks must be a list')
-    else:
-        return homeworks
+    return homeworks
 
 
 def parse_status(homework):
@@ -139,24 +139,25 @@ def parse_status(homework):
         str: Message with the status of the homework.
     """
     if not isinstance(homework, dict):
-        raise TypeError('Homework must be a dictionary type')
-    if 'homework_name' not in homework:
-        raise KeyError('No "homework_name" at homework keys')
+        raise TypeError('Homework must be a dictionary type.')
+    elif 'homework_name' not in homework:
+        raise KeyError('No "homework_name" at homework keys.')
+    elif 'status' not in homework:
+        raise KeyError('No "status" at homework keys.')
     homework_name = homework['homework_name']
     homework_status = homework['status']
-    if homework_status in HOMEWORK_VERDICTS:
-        verdict = HOMEWORK_VERDICTS[homework_status]
-    else:
+    if homework_status not in HOMEWORK_VERDICTS:
         raise UndefinedStatusException(
             f'Unkown status: {homework_status}'
         )
-    return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+    return (
+        f'Изменился статус проверки работы "{homework_name}".'
+        f'{HOMEWORK_VERDICTS[homework_status]}'
+    )
 
 
 def main():
     """Основная логика работы бота."""
-    load_dotenv()
-
     logging.basicConfig(
         level=logging.DEBUG,
         filename='program.log',
