@@ -158,10 +158,10 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
-    if check_tokens():
+    if missing_tokens := check_tokens():
         message = (
             f'Check for existence of environment varibles/tokens:'
-            f'{", ".join(check_tokens())}'
+            f'{", ".join(missing_tokens)}'
         )
         logger.critical(message)
         raise NoneValueException(message)
