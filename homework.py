@@ -158,14 +158,6 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
-    logging.basicConfig(
-        level=logging.DEBUG,
-        filename='program.log',
-        format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
-    )
-    handler = logging.StreamHandler()
-    logger.addHandler(handler)
-
     if check_tokens():
         message = (
             f'Check for existence of environment varibles/tokens:'
@@ -201,4 +193,11 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(
+        level=logging.DEBUG,
+        filename='program.log',
+        format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
+    )
+    handler = logging.StreamHandler()
+    logger.addHandler(handler)
     main()
