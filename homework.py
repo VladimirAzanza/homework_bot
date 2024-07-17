@@ -51,14 +51,19 @@ def send_message(bot, message):
         message (str):  Message to be sent to the user.
     """
     logger.info('Loading the message to send it to telegram user.')
-    bot.send_message(
-        chat_id=TELEGRAM_CHAT_ID,
-        text=message,
-        reply_markup=types.ReplyKeyboardRemove()
-    )
-    logger.debug(
-        f'Message succesfully sent to {TELEGRAM_CHAT_ID}: {message}'
-    )
+    try:
+        bot.send_message(
+            chat_id=TELEGRAM_CHAT_ID,
+            text=message,
+            reply_markup=types.ReplyKeyboardRemove()
+        )
+        logger.debug(
+            f'Message succesfully sent to {TELEGRAM_CHAT_ID}: {message}'
+        )
+    except (requests.RequestException, apihelper.ApiException) as error:
+        message = f'Failed to send message: {error}'
+        logger.error(message)
+        raise SendTelegramException(message)
 
 
 def get_api_answer(timestamp):
