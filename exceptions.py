@@ -1,7 +1,3 @@
-class NoneValueException(Exception):
-    """Exception raised for a missing token or environment variable."""
-
-
 class UndefinedStatusException(Exception):
     """Exception raised for no expected status."""
 

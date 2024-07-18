@@ -16,7 +16,6 @@ from constants import (
     TELEGRAM_TOKEN,
 )
 from exceptions import (
-    NoneValueException,
     SendTelegramException,
     StatusCodeException,
     UndefinedStatusException
@@ -40,6 +39,11 @@ def check_tokens():
             (TELEGRAM_TOKEN, 'Telegram token'),
         ] if not token
     ]
+    if missing_tokens:
+        logger.critical(
+            f'Check for existence of environment varibles/tokens:'
+            f'{", ".join(missing_tokens)}'
+        )
     return missing_tokens
 
 
@@ -87,19 +91,15 @@ def get_api_answer(timestamp):
     try:
         response = requests.get(**request_kwargs)
     except requests.RequestException as error:
-        message = (
+        raise StatusCodeException(
             f'API failed to make a request: {error}.\n'
             f'Request parameters: {request_kwargs}'
         )
-        logger.error(message)
-        raise StatusCodeException(message)
     if response.status_code != HTTPStatus.OK:
-        message = (
+        raise StatusCodeException(
             'Not 200 Http status code.\n'
             f'Request parameters: {request_kwargs}'
         )
-        logger.error(message)
-        raise StatusCodeException(message)
     return response.json()
 
 
@@ -118,14 +118,14 @@ def check_response(response):
     """
     logger.info('Ckecking for a correct response to the request.')
     if not isinstance(response, dict):
-        raise TypeError('Response must be a dictionary type')
+        raise TypeError('Response must be a dictionary type.')
     if 'homeworks' not in response:
-        raise KeyError('Not homeworks key at response')
+        raise KeyError('Not homeworks key at response.')
     homeworks = response.get('homeworks')
     if not homeworks:
-        logger.debug('No new homework status')
+        logger.debug('The request sent an empty string.')
     elif not isinstance(homeworks, list):
-        raise TypeError('Homeworks must be a list')
+        raise TypeError('Homeworks must be a list.')
     return homeworks
 
 
@@ -145,9 +145,9 @@ def parse_status(homework):
     """
     if not isinstance(homework, dict):
         raise TypeError('Homework must be a dictionary type.')
-    elif 'homework_name' not in homework:
+    if 'homework_name' not in homework:
         raise KeyError('No "homework_name" at homework keys.')
-    elif 'status' not in homework:
+    if 'status' not in homework:
         raise KeyError('No "status" at homework keys.')
     homework_name = homework['homework_name']
     homework_status = homework['status']
@@ -164,13 +164,10 @@ def parse_status(homework):
 def main():
     """Основная логика работы бота."""
     if missing_tokens := check_tokens():
-        message = (
+        raise SystemExit(
             f'Check for existence of environment varibles/tokens:'
             f'{", ".join(missing_tokens)}'
         )
-        logger.critical(message)
-        raise NoneValueException(message)
-
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
     last_message = ''
@@ -178,21 +175,21 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
-            timestamp = response.get('current_date')
+            timestamp = response.get('current_date', timestamp)
             homeworks = check_response(response)
             if homeworks:
                 new_message = parse_status(homeworks[0])
                 if new_message != last_message:
                     send_message(bot, new_message)
                     last_message = new_message
-        except (requests.RequestException, apihelper.ApiException) as error:
-            message = f'Failed to send message: {error}'
-            logger.error(message)
-            raise SendTelegramException(message)
+        except SendTelegramException as error:
+            logging.error(f'Error sending the message: {error}')
         except Exception as error:
             message = f'Program crash: {error}'
-            logging.warning(message)
-            send_message(bot, message)
+            logging.error(message)
+            if message != last_message:
+                send_message(bot, message)
+                last_message = message
         finally:
             time.sleep(RETRY_PERIOD)
 
